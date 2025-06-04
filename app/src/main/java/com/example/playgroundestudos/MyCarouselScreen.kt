@@ -17,13 +17,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.playgroundestudos.ui.components.paginationDots.BirdPaginationDots
+import com.example.playgroundestudos.ui.components.paginationDots.BirdPaginationDotsLazy
 
 @Composable
 fun MyCarouselScreen(
     modifier: Modifier
 ) {
-    val totalPages = 10 // Exemplo: 10 páginas no carrossel
+    val totalPages = 8 // Exemplo: 10 páginas no carrossel
     var currentPage by remember { mutableStateOf(0) }
 
     Column(
@@ -38,7 +38,7 @@ fun MyCarouselScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         // Adicionando o BirdPaginationDots
-        BirdPaginationDots(
+        BirdPaginationDotsLazy(
             count = totalPages,
             currentIndex = currentPage,
         )
