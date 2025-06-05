@@ -11,6 +11,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -23,8 +24,8 @@ import com.example.playgroundestudos.ui.components.paginationDots.BirdPagination
 fun MyCarouselScreen(
     modifier: Modifier
 ) {
-    val totalPages = 8 // Exemplo: 10 páginas no carrossel
-    var currentPage by remember { mutableStateOf(0) }
+    val totalPages = 10 // Exemplo: 10 páginas no carrossel
+    var currentPage by remember { mutableIntStateOf(0) }
 
     Column(
         modifier = modifier

@@ -31,7 +31,7 @@ fun BirdDot(
     isForwardNavigation: Boolean,
     selectedWidth: Dp = 20.dp,
     idleWidth: Dp = 6.dp,
-    animationDurationMillis: Int = 500
+    animationDurationMillis: Int = 1000
 ) {
     val selectedColor = Color.Blue
     val unselectedColor = Color.LightGray
@@ -55,23 +55,13 @@ fun BirdDot(
             scaleIn(
                 animationSpec = tween(animationDurationMillis),
                 transformOrigin = TransformOrigin.Center // Efeito de escala a partir do centro
-            ) +
-            slideInHorizontally(animationSpec = tween(animationDurationMillis)) { fullWidth ->
-                // Se for navegação para "próximo", entra da direita.
-                // Se for navegação para "anterior", entra da esquerda.
-                if (isForwardNavigation) fullWidth else -fullWidth
-            }
+            )
 
     val exitTransition = fadeOut(animationSpec = tween(animationDurationMillis)) +
             scaleOut(
                 animationSpec = tween(animationDurationMillis),
                 transformOrigin = TransformOrigin.Center // Efeito de escala para o centro
-            ) +
-            slideOutHorizontally(animationSpec = tween(animationDurationMillis)) { fullWidth ->
-                // Se for navegação para "próximo", sai para a esquerda.
-                // Se for navegação para "anterior", sai para a direita.
-                if (isForwardNavigation) -fullWidth else fullWidth
-            }
+            )
 
     AnimatedVisibility(
         visible = isCurrentlyVisible,
