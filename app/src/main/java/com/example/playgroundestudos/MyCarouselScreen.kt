@@ -12,13 +12,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.playgroundestudos.ui.components.paginationDots.BirdPaginationDotsLazy
+import com.example.playgroundestudos.ui.components.paginationDotsRow.DotsGroup
 
 @Composable
 fun MyCarouselScreen(
@@ -39,9 +38,9 @@ fun MyCarouselScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         // Adicionando o BirdPaginationDots
-        BirdPaginationDotsLazy(
+        DotsGroup(
             count = totalPages,
-            currentIndex = currentPage,
+            selectedIndex = currentPage,
         )
 
         Spacer(modifier = Modifier.height(20.dp))
