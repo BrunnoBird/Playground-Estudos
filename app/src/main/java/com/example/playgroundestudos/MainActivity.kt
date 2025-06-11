@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             PlaygroundEstudosTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MyCarouselScreen(
+                    OnboardingScreen( // Changed MyCarouselScreen to OnboardingScreen
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
