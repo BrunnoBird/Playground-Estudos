@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -22,7 +23,7 @@ internal class IndicatorController(
     startRange: IntRange = startIndex..dotStyle.visibleDotCount.minus(1)
 
 ) : IndicatorRangeProcessor, IndicatorMovementProcessor {
-    private var selectedIndex = mutableStateOf(startIndex)
+    private var selectedIndex = mutableIntStateOf(startIndex)
 
     internal val colorTargets = SnapshotStateList<Color>()
     internal val colors = mutableListOf<State<Color>>()
@@ -71,7 +72,7 @@ internal class IndicatorController(
     }
 
     private fun next() {
-        if (selectedIndex.value + 1 == visibleRange.last && selectedIndex.value + 1 != count - 1) {
+        if (selectedIndex.intValue + 1 == visibleRange.last && selectedIndex.intValue + 1 != count - 1) {
             for (i in 0 until count)
                 offsetTargets[i] = when (orientation) {
                     Orientation.Vertical -> Offset(
@@ -84,7 +85,7 @@ internal class IndicatorController(
                     )
                 }
             processRangeNext()
-            selectedIndex.value++
+            selectedIndex.intValue++
             for (i in 0 until count) {
 
                 sizeTargets[i] = sizeFinder(i)
@@ -97,7 +98,7 @@ internal class IndicatorController(
     }
 
     private fun prev() {
-        if (selectedIndex.value - 1 == visibleRange.first && selectedIndex.value - 1 != 0) {
+        if (selectedIndex.intValue - 1 == visibleRange.first && selectedIndex.intValue - 1 != 0) {
             for (i in 0 until count)
                 offsetTargets[i] =
                     when (orientation) {
@@ -109,7 +110,7 @@ internal class IndicatorController(
                         )
                     }
             processRangePrev()
-            selectedIndex.value--
+            selectedIndex.intValue--
             for (i in 0 until count) {
                 sizeTargets[i] = sizeFinder(i)
                 colorTargets[i] = colorFinder(i)
@@ -175,24 +176,24 @@ internal class IndicatorController(
     }
 
     override fun processMovementForward() {
-        sizeTargets[selectedIndex.value] = dotStyle.regularDotRadius
-        colorTargets[selectedIndex.value] = dotStyle.regularDotColor
-        selectedIndex.value++
-        sizeTargets[selectedIndex.value] = dotStyle.currentDotRadius
-        colorTargets[selectedIndex.value] = dotStyle.currentDotColor
+        sizeTargets[selectedIndex.intValue] = dotStyle.regularDotRadius
+        colorTargets[selectedIndex.intValue] = dotStyle.regularDotColor
+        selectedIndex.intValue++
+        sizeTargets[selectedIndex.intValue] = dotStyle.currentDotRadius
+        colorTargets[selectedIndex.intValue] = dotStyle.currentDotColor
     }
 
     override fun processMovementBackward() {
-        sizeTargets[selectedIndex.value] = dotStyle.regularDotRadius
-        colorTargets[selectedIndex.value] = dotStyle.regularDotColor
-        selectedIndex.value--
-        sizeTargets[selectedIndex.value] = dotStyle.currentDotRadius
-        colorTargets[selectedIndex.value] = dotStyle.currentDotColor
+        sizeTargets[selectedIndex.intValue] = dotStyle.regularDotRadius
+        colorTargets[selectedIndex.intValue] = dotStyle.regularDotColor
+        selectedIndex.intValue--
+        sizeTargets[selectedIndex.intValue] = dotStyle.currentDotRadius
+        colorTargets[selectedIndex.intValue] = dotStyle.currentDotColor
 
     }
 
     fun getCurrentIndex(): Int {
-        return selectedIndex.value
+        return selectedIndex.intValue
     }
 
     fun pageChanged(index: Int) {
@@ -200,7 +201,7 @@ internal class IndicatorController(
         // e a comparação de índices, mas agora ela pode ser chamada
         // repetidamente com o novo índice.
         // A lógica interna de next() e prev() já lida com as animações.
-        val diff = index - selectedIndex.value
+        val diff = index - selectedIndex.intValue
         if (diff > 0) {
             repeat(diff) { next() }
         } else {

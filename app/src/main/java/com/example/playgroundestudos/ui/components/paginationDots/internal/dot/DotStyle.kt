@@ -21,9 +21,9 @@ data class DotStyle(
 
     companion object {
         private const val defaultVisibleDotCount = 5
-        private const val defaultRegularRadius = 4f
-        private const val defaultDotNotLastRadius = 2f
-        private const val defaultCurrentDotRadius = 8f
+        private const val defaultRegularRadius = 8f
+        private const val defaultDotNotLastRadius = 8f
+        private const val defaultCurrentDotRadius = 16f
         private const val defaultDotMargin = defaultRegularRadius.times(3f)
         private val defaultCurrentDotColor = Color(0xFF0d6efd)
         private val defaultRegularDotColor = Color(0xFF6c757d)

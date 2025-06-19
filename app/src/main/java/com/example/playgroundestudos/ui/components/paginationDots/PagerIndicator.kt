@@ -7,9 +7,13 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
@@ -17,25 +21,24 @@ import com.example.playgroundestudos.ui.components.paginationDots.internal.Range
 import com.example.playgroundestudos.ui.components.paginationDots.internal.dot.DotAnimation
 import com.example.playgroundestudos.ui.components.paginationDots.internal.dot.DotStyle
 import com.example.playgroundestudos.ui.components.paginationDots.internal.rememberIndicatorController
+
 @Composable
 internal fun SimplePagerIndicatorKernel(
     pageCount: Int,
-    currentIndex: Int, // <-- ALTERADO: Recebe o índice atual diretamente
+    currentIndex: Int,
     intSize: IntSize,
     dotStyle: DotStyle = DotStyle.defaultDotStyle,
     dotAnimation: DotAnimation = DotAnimation.defaultDotAnimation,
     orientation: Orientation = Orientation.Vertical
 ) {
-    // Salva o último índice conhecido para sobreviver a recomposições e rotações
     var page by remember {
         mutableIntStateOf(currentIndex)
     }
-    // Salva o range de dots visíveis
+
     var range by remember {
         mutableStateOf(RangeChanged(0, dotStyle.visibleDotCount - 1))
     }
 
-    // Função para atualizar o range de dots visíveis quando o índice chega nas bordas
     fun updateRange(index: Int) {
         if (index == range.endIndex && index != pageCount - 1) {
             range = RangeChanged(
@@ -56,7 +59,6 @@ internal fun SimplePagerIndicatorKernel(
             size = intSize,
             dotStyle = dotStyle,
             orientation = orientation,
-            // Inicia o controller com o último estado salvo
             startIndex = page,
             startRange = range.startIndex..range.endIndex
         )
@@ -73,7 +75,6 @@ internal fun SimplePagerIndicatorKernel(
         }
     }
 
-    // A lógica de animação permanece a mesma
     indicatorController.clearAll()
     for (i in 0 until pageCount) {
         indicatorController.sizes.add(
@@ -106,7 +107,6 @@ internal fun SimplePagerIndicatorKernel(
         }
     }
 }
-
 
 /**
  * Um indicador de paginação que é controlado por um [currentIndex] inteiro,
