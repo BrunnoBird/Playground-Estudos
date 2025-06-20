@@ -29,7 +29,6 @@ internal fun SimplePagerIndicatorKernel(
     intSize: IntSize,
     dotStyle: DotStyle = DotStyle.defaultDotStyle,
     dotAnimation: DotAnimation = DotAnimation.defaultDotAnimation,
-    orientation: Orientation = Orientation.Vertical
 ) {
     var page by remember {
         mutableIntStateOf(currentIndex)
@@ -58,7 +57,6 @@ internal fun SimplePagerIndicatorKernel(
             count = pageCount,
             size = intSize,
             dotStyle = dotStyle,
-            orientation = orientation,
             startIndex = page,
             startRange = range.startIndex..range.endIndex
         )
@@ -76,6 +74,7 @@ internal fun SimplePagerIndicatorKernel(
     }
 
     indicatorController.clearAll()
+
     for (i in 0 until pageCount) {
         indicatorController.sizes.add(
             animateFloatAsState(
@@ -117,7 +116,6 @@ internal fun SimplePagerIndicatorKernel(
  * @param currentIndex O índice da página atualmente selecionada (começando em 0).
  * @param dotStyle O estilo customizado para os dots.
  * @param dotAnimation As animações customizadas para os dots.
- * @param orientation A orientação do indicador (Horizontal ou Vertical).
  */
 @Composable
 fun SimplePagerIndicator(
@@ -126,7 +124,6 @@ fun SimplePagerIndicator(
     currentIndex: Int,
     dotStyle: DotStyle = DotStyle.defaultDotStyle,
     dotAnimation: DotAnimation = DotAnimation.defaultDotAnimation,
-    orientation: Orientation = Orientation.Vertical
 ) {
     BoxWithConstraints(modifier = modifier) {
         val density = LocalDensity.current
@@ -142,7 +139,6 @@ fun SimplePagerIndicator(
                     h.toPx().toInt()
                 )
             },
-            orientation = orientation,
             dotStyle = dotStyle,
             dotAnimation = dotAnimation
         )
