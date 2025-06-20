@@ -4,10 +4,11 @@ import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 
 data class DotAnimation(
-    val sizeAnim: AnimationSpec<Float>,
+    val sizeAnim: AnimationSpec<Size>,
     val offsetAnim: AnimationSpec<Offset>,
     val colorAnim: AnimationSpec<Color>
 ) {

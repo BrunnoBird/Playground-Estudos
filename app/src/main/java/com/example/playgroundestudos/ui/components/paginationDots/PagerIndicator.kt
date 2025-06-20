@@ -1,13 +1,14 @@
 package com.example.playgroundestudos.ui.components.paginationDots
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.animateOffsetAsState
+import androidx.compose.animation.core.animateSizeAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,6 +18,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -57,22 +61,17 @@ internal fun SimplePagerIndicatorKernel(
         }
     }
 
-    val indicatorController =
-        rememberIndicatorController(
-            count = pageCount,
-            size = intSize,
-            dotStyle = dotStyle,
-            startIndex = page,
-            startRange = range.startIndex..range.endIndex
-        )
+    val indicatorController = rememberIndicatorController(
+        count = pageCount,
+        size = intSize,
+        dotStyle = dotStyle,
+        startIndex = page,
+        startRange = range.startIndex..range.endIndex
+    )
 
-    // <-- ALTERADO: O gatilho agora é a MUDANÇA do `currentIndex`
     LaunchedEffect(currentIndex) {
-        // Compara o novo currentIndex com o estado interno do controller
         if (currentIndex != indicatorController.getCurrentIndex()) {
-            // Chama a lógica de animação do controller
             indicatorController.pageChanged(currentIndex)
-            // Atualiza o estado salvo
             page = currentIndex
             updateRange(currentIndex)
         }
@@ -82,31 +81,44 @@ internal fun SimplePagerIndicatorKernel(
 
     for (i in 0 until pageCount) {
         indicatorController.sizes.add(
-            animateFloatAsState(
+            animateSizeAsState(
                 targetValue = indicatorController.sizeTargets[i],
-                dotAnimation.sizeAnim, label = ""
+                animationSpec = dotAnimation.sizeAnim,
+                label = "sizeAnimation"
             )
         )
         indicatorController.offSets.add(
             animateOffsetAsState(
                 targetValue = indicatorController.offsetTargets[i],
-                dotAnimation.offsetAnim, label = ""
+                animationSpec = dotAnimation.offsetAnim,
+                label = "offsetAnimation"
             )
         )
         indicatorController.colors.add(
             animateColorAsState(
                 targetValue = indicatorController.colorTargets[i],
-                dotAnimation.colorAnim, label = ""
+                animationSpec = dotAnimation.colorAnim,
+                label = "colorAnimation"
             )
         )
     }
 
     Canvas(modifier = Modifier.wrapContentSize()) {
+        val unselectedWidth = dotStyle.unselectedDotSize
+
         for (i in 0 until pageCount) {
-            drawCircle(
-                indicatorController.colors[i].value,
-                radius = indicatorController.sizes[i].value,
-                center = indicatorController.offSets[i].value
+            val center = indicatorController.offSets[i].value
+            val currentSize = indicatorController.sizes[i].value
+            val topLeftY = center.y - currentSize.height / 2
+            val topLeftX = center.x - unselectedWidth / 2
+            val topLeft = Offset(topLeftX, topLeftY)
+            val cornerRadius = CornerRadius(x = currentSize.height / 2, y = currentSize.height / 2)
+
+            drawRoundRect(
+                color = indicatorController.colors[i].value,
+                topLeft = topLeft,
+                size = currentSize,
+                cornerRadius = cornerRadius
             )
         }
     }
@@ -133,15 +145,14 @@ fun SimplePagerIndicator(
     var widthContent: Dp = 0.dp
     var heightContent: Dp = 0.dp
 
-    Box(modifier = modifier
-        .wrapContentSize()
-        .onGloballyPositioned {
-            widthContent = it.size.width.dp
-            heightContent = it.size.height.dp
-        }) {
+    Box(
+        modifier = modifier
+            .wrapContentSize()
+            .onGloballyPositioned {
+                widthContent = it.size.width.dp
+                heightContent = it.size.height.dp
+            }) {
         val density = LocalDensity.current
-//        val h = this.maxHeight
-//        val w = this.maxWidth
 
         SimplePagerIndicatorKernel(
             pageCount = pageCount,

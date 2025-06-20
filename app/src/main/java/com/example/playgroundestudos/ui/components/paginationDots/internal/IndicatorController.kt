@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.center
@@ -27,13 +28,13 @@ internal class IndicatorController(
     internal val colorTargets = SnapshotStateList<Color>()
     internal val colors = mutableListOf<State<Color>>()
 
-    internal val sizeTargets = SnapshotStateList<Float>()
-    internal val sizes = mutableListOf<State<Float>>()
+    internal val sizeTargets = SnapshotStateList<Size>()
+    internal val sizes = mutableListOf<State<Size>>()
 
     internal val offsetTargets = SnapshotStateList<Offset>()
     internal val offSets = mutableListOf<State<Offset>>()
 
-    private var offsetEach = dotStyle.dotMargin + dotStyle.regularDotRadius.times(2)
+    private var offsetEach = dotStyle.unselectedDotSize + dotStyle.dotMargin
 
     private var visibleRange = startRange
 
@@ -45,9 +46,7 @@ internal class IndicatorController(
 
             offsetTargets.add(
                 Offset(
-                    x = calculateStartOffset() + i.times(dotStyle.dotMargin) + i.times(
-                        dotStyle.regularDotRadius.times(2)
-                    ) - ((startRange.first) * offsetEach),
+                    x = calculateStartOffset() + i * offsetEach - (startRange.first * offsetEach),
                     y = size.center.y.toFloat()
                 )
             )
@@ -61,102 +60,66 @@ internal class IndicatorController(
     }
 
     private fun next() {
-        // A condição para rolar continua a mesma: quando a seleção atinge a borda da área visível.
         if (selectedIndex.intValue + 1 == visibleRange.last && selectedIndex.intValue + 1 != count - 1) {
-
-            // ALTERADO: Em vez de mover o equivalente a 1 dot, movemos por `scrollStep` (3) dots.
             val totalOffsetShift = offsetEach * MAX_SCROLLABLE_DOT
-
-            // Aplica o novo deslocamento, que é maior
             for (i in 0 until count)
-                offsetTargets[i] = Offset(
-                    x = offsetTargets[i].x - totalOffsetShift,
-                    y = offsetTargets[i].y
-                )
-
-            // ALTERADO: Atualiza o intervalo de dots visíveis avançando `scrollStep` posições.
+                offsetTargets[i] = Offset(x = offsetTargets[i].x - totalOffsetShift, y = offsetTargets[i].y)
             processRangeNext(MAX_SCROLLABLE_DOT)
-
-            // A lógica de seleção do próximo item e atualização dos estilos não muda.
             selectedIndex.intValue++
             for (i in 0 until count) {
                 sizeTargets[i] = sizeFinder(i)
                 colorTargets[i] = colorFinder(i)
             }
-
         } else {
-            // Se não estivermos na borda, apenas avançamos a seleção (comportamento normal).
             processMovementForward()
         }
     }
 
     private fun prev() {
-        // A lógica para voltar é simétrica à do `next()`.
         if (selectedIndex.intValue - 1 == visibleRange.first && selectedIndex.intValue - 1 != 0) {
-
-            // ALTERADO: Calcula o deslocamento total para a direção oposta.
             val totalOffsetShift = offsetEach * MAX_SCROLLABLE_DOT
-
-            // Aplica o deslocamento.
             for (i in 0 until count)
-                offsetTargets[i] =
-                    Offset(x = offsetTargets[i].x + totalOffsetShift, y = offsetTargets[i].y)
-
-            // ALTERADO: Atualiza o intervalo de dots visíveis recuando `scrollStep` posições.
+                offsetTargets[i] = Offset(x = offsetTargets[i].x + totalOffsetShift, y = offsetTargets[i].y)
             processRangePrev(MAX_SCROLLABLE_DOT)
-
-            // A lógica de seleção e atualização de estilo não muda.
             selectedIndex.intValue--
             for (i in 0 until count) {
                 sizeTargets[i] = sizeFinder(i)
                 colorTargets[i] = colorFinder(i)
             }
-
         } else {
-            // Se não estivermos na borda, apenas retrocedemos a seleção.
             processMovementBackward()
         }
     }
 
+
     private fun colorFinder(index: Int): Color {
         return when (index) {
-            selectedIndex.value -> dotStyle.currentDotColor
+            selectedIndex.intValue -> dotStyle.currentDotColor
             else -> dotStyle.regularDotColor
-
         }
     }
 
-    private fun sizeFinder(index: Int): Float {
+    private fun sizeFinder(index: Int): Size {
         return when (index) {
-            selectedIndex.value -> dotStyle.currentDotRadius
-            visibleRange.first -> {
-                if (visibleRange.first != 0)
-                    dotStyle.notLastDotRadius
-                else
-                    dotStyle.regularDotRadius
-            }
-
-            visibleRange.last -> {
-                if (visibleRange.last != count - 1)
-                    dotStyle.notLastDotRadius
-                else
-                    dotStyle.regularDotRadius
-            }
-
-            in visibleRange -> dotStyle.regularDotRadius
-
-            else -> 0f
+            selectedIndex.intValue -> Size(width = dotStyle.selectedDotWidth, height = dotStyle.unselectedDotSize)
+            in visibleRange -> Size(dotStyle.unselectedDotSize, dotStyle.unselectedDotSize)
+            else -> Size.Zero
         }
     }
 
     private fun calculateStartOffset(): Float {
-        var totalDotSize = dotStyle.regularDotRadius.times(2f)
+        val unselectedDotWidth = dotStyle.unselectedDotSize
+        var totalVisibleWidth = 0f
+        val visibleCount = if (count > dotStyle.visibleDotCount) dotStyle.visibleDotCount else count
 
-        val till = if (count > dotStyle.visibleDotCount) dotStyle.visibleDotCount else count
-        for (i in 1 until till)
-            totalDotSize += dotStyle.regularDotRadius.times(2f) + dotStyle.dotMargin
+        for (i in 0 until visibleCount) {
+            totalVisibleWidth += unselectedDotWidth
+            if (i < visibleCount - 1) {
+                totalVisibleWidth += dotStyle.dotMargin
+            }
+        }
 
-        return size.width.div(2f) - totalDotSize.div(2f) + dotStyle.regularDotRadius
+        return size.width / 2f - totalVisibleWidth / 2f + unselectedDotWidth / 2f
     }
 
     override fun processRangeNext(step: Int) {
@@ -172,25 +135,30 @@ internal class IndicatorController(
     }
 
     override fun processMovementForward() {
-        sizeTargets[selectedIndex.intValue] = dotStyle.regularDotRadius
-        colorTargets[selectedIndex.intValue] = dotStyle.regularDotColor
+        val oldIndex = selectedIndex.intValue
+
         selectedIndex.intValue++
-        sizeTargets[selectedIndex.intValue] = dotStyle.currentDotRadius
-        colorTargets[selectedIndex.intValue] = dotStyle.currentDotColor
+
+        sizeTargets[oldIndex] = sizeFinder(oldIndex)
+        colorTargets[oldIndex] = colorFinder(oldIndex)
+
+        // E o `sizeFinder(selectedIndex.intValue)` vai identificar o novo índice como selecionado.
+        sizeTargets[selectedIndex.intValue] = sizeFinder(selectedIndex.intValue)
+        colorTargets[selectedIndex.intValue] = colorFinder(selectedIndex.intValue)
     }
 
     override fun processMovementBackward() {
-        sizeTargets[selectedIndex.intValue] = dotStyle.regularDotRadius
-        colorTargets[selectedIndex.intValue] = dotStyle.regularDotColor
+        val oldIndex = selectedIndex.intValue
         selectedIndex.intValue--
-        sizeTargets[selectedIndex.intValue] = dotStyle.currentDotRadius
-        colorTargets[selectedIndex.intValue] = dotStyle.currentDotColor
 
+        sizeTargets[oldIndex] = sizeFinder(oldIndex)
+        colorTargets[oldIndex] = colorFinder(oldIndex)
+
+        sizeTargets[selectedIndex.intValue] = sizeFinder(selectedIndex.intValue)
+        colorTargets[selectedIndex.intValue] = colorFinder(selectedIndex.intValue)
     }
 
-    fun getCurrentIndex(): Int {
-        return selectedIndex.intValue
-    }
+    fun getCurrentIndex(): Int = selectedIndex.intValue
 
     fun pageChanged(index: Int) {
         val diff = index - selectedIndex.intValue
@@ -200,7 +168,6 @@ internal class IndicatorController(
             repeat(-diff) { prev() }
         }
     }
-
 }
 
 @Composable
