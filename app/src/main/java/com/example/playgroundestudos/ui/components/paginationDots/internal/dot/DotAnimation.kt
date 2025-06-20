@@ -14,8 +14,8 @@ data class DotAnimation(
 ) {
     companion object {
         val defaultDotAnimation = DotAnimation(
-            offsetAnim = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
-            sizeAnim = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+            offsetAnim = tween(durationMillis = 3000, easing = FastOutSlowInEasing),
+            sizeAnim = tween(durationMillis = 3000, easing = FastOutSlowInEasing),
             colorAnim = tween(durationMillis = 1000)
         )
     }

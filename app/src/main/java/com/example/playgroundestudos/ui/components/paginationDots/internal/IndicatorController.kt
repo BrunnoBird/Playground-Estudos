@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.center
 import com.example.playgroundestudos.ui.components.paginationDots.internal.dot.DotStyle
+import kotlin.times
 
 const val MAX_SCROLLABLE_DOT = 3
 
@@ -47,7 +48,7 @@ internal class IndicatorController(
             offsetTargets.add(
                 Offset(
                     x = calculateStartOffset() + i * offsetEach - (startRange.first * offsetEach),
-                    y = size.center.y.toFloat()
+                    y = size.center.y.toFloat() / 2
                 )
             )
         }
@@ -60,33 +61,58 @@ internal class IndicatorController(
     }
 
     private fun next() {
+        // A condição para rolar continua a mesma: quando a seleção atinge a borda da área visível.
         if (selectedIndex.intValue + 1 == visibleRange.last && selectedIndex.intValue + 1 != count - 1) {
+
+            // ALTERADO: Em vez de mover o equivalente a 1 dot, movemos por `scrollStep` (3) dots.
             val totalOffsetShift = offsetEach * MAX_SCROLLABLE_DOT
+
+            // Aplica o novo deslocamento, que é maior
             for (i in 0 until count)
-                offsetTargets[i] = Offset(x = offsetTargets[i].x - totalOffsetShift, y = offsetTargets[i].y)
+                offsetTargets[i] = Offset(
+                    x = offsetTargets[i].x - totalOffsetShift,
+                    y = offsetTargets[i].y
+                )
+
+            // ALTERADO: Atualiza o intervalo de dots visíveis avançando `scrollStep` posições.
             processRangeNext(MAX_SCROLLABLE_DOT)
+
+            // A lógica de seleção do próximo item e atualização dos estilos não muda.
             selectedIndex.intValue++
             for (i in 0 until count) {
                 sizeTargets[i] = sizeFinder(i)
                 colorTargets[i] = colorFinder(i)
             }
+
         } else {
+            // Se não estivermos na borda, apenas avançamos a seleção (comportamento normal).
             processMovementForward()
         }
     }
 
     private fun prev() {
         if (selectedIndex.intValue - 1 == visibleRange.first && selectedIndex.intValue - 1 != 0) {
+
+            // ALTERADO: Calcula o deslocamento total para a direção oposta.
             val totalOffsetShift = offsetEach * MAX_SCROLLABLE_DOT
+
+            // Aplica o deslocamento.
             for (i in 0 until count)
-                offsetTargets[i] = Offset(x = offsetTargets[i].x + totalOffsetShift, y = offsetTargets[i].y)
+                offsetTargets[i] =
+                    Offset(x = offsetTargets[i].x + totalOffsetShift, y = offsetTargets[i].y)
+
+            // ALTERADO: Atualiza o intervalo de dots visíveis recuando `scrollStep` posições.
             processRangePrev(MAX_SCROLLABLE_DOT)
+
+            // A lógica de seleção e atualização de estilo não muda.
             selectedIndex.intValue--
             for (i in 0 until count) {
                 sizeTargets[i] = sizeFinder(i)
                 colorTargets[i] = colorFinder(i)
             }
+
         } else {
+            // Se não estivermos na borda, apenas retrocedemos a seleção.
             processMovementBackward()
         }
     }
@@ -142,7 +168,6 @@ internal class IndicatorController(
         sizeTargets[oldIndex] = sizeFinder(oldIndex)
         colorTargets[oldIndex] = colorFinder(oldIndex)
 
-        // E o `sizeFinder(selectedIndex.intValue)` vai identificar o novo índice como selecionado.
         sizeTargets[selectedIndex.intValue] = sizeFinder(selectedIndex.intValue)
         colorTargets[selectedIndex.intValue] = colorFinder(selectedIndex.intValue)
     }

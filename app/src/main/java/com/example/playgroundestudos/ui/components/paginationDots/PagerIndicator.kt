@@ -1,15 +1,13 @@
 package com.example.playgroundestudos.ui.components.paginationDots
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.animation.core.animateSizeAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -104,14 +102,18 @@ internal fun SimplePagerIndicatorKernel(
         )
     }
 
-    Canvas(modifier = Modifier.wrapContentSize()) {
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
         val unselectedWidth = dotStyle.unselectedDotSize
+        val selectedWidth = dotStyle.selectedDotWidth
 
         for (i in 0 until pageCount) {
             val center = indicatorController.offSets[i].value
             val currentSize = indicatorController.sizes[i].value
-            val topLeftY = center.y - currentSize.height / 2
-            val topLeftX = center.x - unselectedWidth / 2
+            val topLeftY = center.y + currentSize.height
+            val topLeftX = isSelectedDotToCenterX(i, currentIndex, center, currentSize, unselectedWidth, selectedWidth)
             val topLeft = Offset(topLeftX, topLeftY)
             val cornerRadius = CornerRadius(x = currentSize.height / 2, y = currentSize.height / 2)
 
@@ -123,6 +125,19 @@ internal fun SimplePagerIndicatorKernel(
             )
         }
     }
+}
+
+private fun isSelectedDotToCenterX(
+    i: Int,
+    currentIndex: Int,
+    center: Offset,
+    currentSize: Size,
+    unselectedWidth: Float,
+    selectedWidth: Float
+): Float = if (i == currentIndex) {
+    center.x + currentSize.width + unselectedWidth
+} else {
+    center.x + currentSize.width + selectedWidth
 }
 
 /**
@@ -137,7 +152,7 @@ internal fun SimplePagerIndicatorKernel(
  */
 @Composable
 fun SimplePagerIndicator(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     pageCount: Int,
     currentIndex: Int,
     unselectedDotSize: Dp = 8.dp,
@@ -149,10 +164,16 @@ fun SimplePagerIndicator(
     dotAnimation: DotAnimation = DotAnimation.defaultDotAnimation,
 ) {
     var intSize by remember { mutableStateOf(IntSize.Zero) }
+    val totalWidth = remember(visibleDotCount, unselectedDotSize, selectedDotWidth, dotMargin) {
+        val unselectedDotsWidth = (visibleDotCount - 1) * unselectedDotSize.value
+        val marginsWidth = (visibleDotCount - 1) * dotMargin.value
+        unselectedDotsWidth + selectedDotWidth.value + marginsWidth
+    }
 
     Box(
         modifier = modifier
-            .wrapContentSize()
+            .height(24.dp)
+            .width(totalWidth.dp)
             .onGloballyPositioned {
                 intSize = it.size
             }) {
