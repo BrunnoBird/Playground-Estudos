@@ -5,8 +5,10 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -15,8 +17,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import com.example.playgroundestudos.ui.components.paginationDots.internal.RangeChanged
 import com.example.playgroundestudos.ui.components.paginationDots.internal.dot.DotAnimation
 import com.example.playgroundestudos.ui.components.paginationDots.internal.dot.DotStyle
@@ -96,7 +101,7 @@ internal fun SimplePagerIndicatorKernel(
         )
     }
 
-    Canvas(modifier = Modifier.fillMaxSize()) {
+    Canvas(modifier = Modifier.wrapContentSize()) {
         for (i in 0 until pageCount) {
             drawCircle(
                 indicatorController.colors[i].value,
@@ -125,18 +130,26 @@ fun SimplePagerIndicator(
     dotStyle: DotStyle = DotStyle.defaultDotStyle,
     dotAnimation: DotAnimation = DotAnimation.defaultDotAnimation,
 ) {
-    BoxWithConstraints(modifier = modifier) {
+    var widthContent: Dp = 0.dp
+    var heightContent: Dp = 0.dp
+
+    Box(modifier = modifier
+        .wrapContentSize()
+        .onGloballyPositioned {
+            widthContent = it.size.width.dp
+            heightContent = it.size.height.dp
+        }) {
         val density = LocalDensity.current
-        val h = this.maxHeight
-        val w = this.maxWidth
+//        val h = this.maxHeight
+//        val w = this.maxWidth
 
         SimplePagerIndicatorKernel(
             pageCount = pageCount,
             currentIndex = currentIndex,
             intSize = with(density) {
                 IntSize(
-                    w.toPx().toInt(),
-                    h.toPx().toInt()
+                    widthContent.toPx().toInt(),
+                    heightContent.toPx().toInt()
                 )
             },
             dotStyle = dotStyle,

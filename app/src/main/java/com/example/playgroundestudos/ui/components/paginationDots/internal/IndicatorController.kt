@@ -1,11 +1,9 @@
 package com.example.playgroundestudos.ui.components.paginationDots.internal
 
 import android.util.Log
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.geometry.Offset
@@ -13,6 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.center
 import com.example.playgroundestudos.ui.components.paginationDots.internal.dot.DotStyle
+
+const val MAX_SCROLLABLE_DOT = 3
 
 internal class IndicatorController(
     private val count: Int,
@@ -61,15 +61,23 @@ internal class IndicatorController(
     }
 
     private fun next() {
+        // A condição para rolar continua a mesma: quando a seleção atinge a borda da área visível.
         if (selectedIndex.intValue + 1 == visibleRange.last && selectedIndex.intValue + 1 != count - 1) {
+
+            // ALTERADO: Em vez de mover o equivalente a 1 dot, movemos por `scrollStep` (3) dots.
+            val totalOffsetShift = offsetEach * MAX_SCROLLABLE_DOT
+
+            // Aplica o novo deslocamento, que é maior
             for (i in 0 until count)
                 offsetTargets[i] = Offset(
-                    x = offsetTargets[i].x - offsetEach,
+                    x = offsetTargets[i].x - totalOffsetShift,
                     y = offsetTargets[i].y
                 )
 
-            processRangeNext()
+            // ALTERADO: Atualiza o intervalo de dots visíveis avançando `scrollStep` posições.
+            processRangeNext(MAX_SCROLLABLE_DOT)
 
+            // A lógica de seleção do próximo item e atualização dos estilos não muda.
             selectedIndex.intValue++
             for (i in 0 until count) {
                 sizeTargets[i] = sizeFinder(i)
@@ -77,17 +85,27 @@ internal class IndicatorController(
             }
 
         } else {
+            // Se não estivermos na borda, apenas avançamos a seleção (comportamento normal).
             processMovementForward()
         }
     }
 
     private fun prev() {
+        // A lógica para voltar é simétrica à do `next()`.
         if (selectedIndex.intValue - 1 == visibleRange.first && selectedIndex.intValue - 1 != 0) {
+
+            // ALTERADO: Calcula o deslocamento total para a direção oposta.
+            val totalOffsetShift = offsetEach * MAX_SCROLLABLE_DOT
+
+            // Aplica o deslocamento.
             for (i in 0 until count)
                 offsetTargets[i] =
-                    Offset(x = offsetTargets[i].x + offsetEach, y = offsetTargets[i].y)
+                    Offset(x = offsetTargets[i].x + totalOffsetShift, y = offsetTargets[i].y)
 
-            processRangePrev()
+            // ALTERADO: Atualiza o intervalo de dots visíveis recuando `scrollStep` posições.
+            processRangePrev(MAX_SCROLLABLE_DOT)
+
+            // A lógica de seleção e atualização de estilo não muda.
             selectedIndex.intValue--
             for (i in 0 until count) {
                 sizeTargets[i] = sizeFinder(i)
@@ -95,11 +113,10 @@ internal class IndicatorController(
             }
 
         } else {
+            // Se não estivermos na borda, apenas retrocedemos a seleção.
             processMovementBackward()
         }
-
     }
-
 
     private fun colorFinder(index: Int): Color {
         return when (index) {
@@ -142,13 +159,16 @@ internal class IndicatorController(
         return size.width.div(2f) - totalDotSize.div(2f) + dotStyle.regularDotRadius
     }
 
-    override fun processRangeNext() {
-        visibleRange = visibleRange.first.plus(1)..visibleRange.last.plus(1)
+    override fun processRangeNext(step: Int) {
+        val newFirst = (visibleRange.first + step).coerceAtMost(count - dotStyle.visibleDotCount)
+        val newLast = (newFirst + dotStyle.visibleDotCount - 1).coerceAtMost(count - 1)
+        visibleRange = newFirst..newLast
     }
 
-    override fun processRangePrev() {
-        visibleRange = visibleRange.first.minus(1)..visibleRange.last.minus(1)
-
+    override fun processRangePrev(step: Int) {
+        val newFirst = (visibleRange.first - step).coerceAtLeast(0)
+        val newLast = (newFirst + dotStyle.visibleDotCount - 1).coerceAtMost(count - 1)
+        visibleRange = newFirst..newLast
     }
 
     override fun processMovementForward() {
@@ -173,10 +193,6 @@ internal class IndicatorController(
     }
 
     fun pageChanged(index: Int) {
-        // A lógica original de 'pageChanged' já trata a direção (next/prev)
-        // e a comparação de índices, mas agora ela pode ser chamada
-        // repetidamente com o novo índice.
-        // A lógica interna de next() e prev() já lida com as animações.
         val diff = index - selectedIndex.intValue
         if (diff > 0) {
             repeat(diff) { next() }

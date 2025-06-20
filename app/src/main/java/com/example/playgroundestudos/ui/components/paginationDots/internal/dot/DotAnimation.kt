@@ -1,8 +1,8 @@
 package com.example.playgroundestudos.ui.components.paginationDots.internal.dot
 
 import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 
@@ -13,9 +13,9 @@ data class DotAnimation(
 ) {
     companion object {
         val defaultDotAnimation = DotAnimation(
-            spring(),
-            spring(visibilityThreshold = Offset.VisibilityThreshold),
-            spring()
+            offsetAnim = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
+            sizeAnim = tween(durationMillis = 1000, easing = FastOutSlowInEasing),
+            colorAnim = tween(durationMillis = 1000)
         )
     }
 }
