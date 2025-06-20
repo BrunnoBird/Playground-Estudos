@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -139,31 +140,50 @@ fun SimplePagerIndicator(
     modifier: Modifier,
     pageCount: Int,
     currentIndex: Int,
-    dotStyle: DotStyle = DotStyle.defaultDotStyle,
+    unselectedDotSize: Dp = 8.dp,
+    selectedDotWidth: Dp = 16.dp,
+    dotMargin: Dp = 4.dp,
+    visibleDotCount: Int = 5,
+    selectedDotColor: Color = Color(0xFF0d6efd),
+    unselectedDotColor: Color = Color(0xFF6c757d),
     dotAnimation: DotAnimation = DotAnimation.defaultDotAnimation,
 ) {
-    var widthContent: Dp = 0.dp
-    var heightContent: Dp = 0.dp
+    var intSize by remember { mutableStateOf(IntSize.Zero) }
 
     Box(
         modifier = modifier
             .wrapContentSize()
             .onGloballyPositioned {
-                widthContent = it.size.width.dp
-                heightContent = it.size.height.dp
+                intSize = it.size
             }) {
+
         val density = LocalDensity.current
+
+        val dotStyleInPx = remember(
+            unselectedDotSize,
+            selectedDotWidth,
+            dotMargin,
+            visibleDotCount,
+            selectedDotColor,
+            unselectedDotColor
+        ) {
+            with(density) {
+                DotStyle(
+                    unselectedDotSize = unselectedDotSize.toPx(),
+                    selectedDotWidth = selectedDotWidth.toPx(),
+                    dotMargin = dotMargin.toPx(),
+                    visibleDotCount = visibleDotCount,
+                    currentDotColor = selectedDotColor,
+                    regularDotColor = unselectedDotColor
+                )
+            }
+        }
 
         SimplePagerIndicatorKernel(
             pageCount = pageCount,
             currentIndex = currentIndex,
-            intSize = with(density) {
-                IntSize(
-                    widthContent.toPx().toInt(),
-                    heightContent.toPx().toInt()
-                )
-            },
-            dotStyle = dotStyle,
+            intSize = intSize,
+            dotStyle = dotStyleInPx,
             dotAnimation = dotAnimation
         )
     }
